@@ -24,6 +24,7 @@ def main():
     running = True
     while running:
         SCREEN.fill(BLACK)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -31,6 +32,10 @@ def main():
         engine.handle_input()
         engine.update()
         engine.render(SCREEN)
+
+        # --- Check for game over ---
+        if engine.check_game_over(SCREEN):
+            running = False  # Stop the loop after showing message
 
         pygame.display.flip()
         clock.tick(FPS)
