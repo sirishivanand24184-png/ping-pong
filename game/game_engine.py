@@ -29,9 +29,13 @@ class GameEngine:
             self.player.move(10, self.height)
 
     def update(self):
+    # Move the ball
         self.ball.move()
+
+    # Check collisions with paddles
         self.ball.check_collision(self.player, self.ai)
 
+    # Check for scoring
         if self.ball.x <= 0:
             self.ai_score += 1
             self.ball.reset()
@@ -39,7 +43,10 @@ class GameEngine:
             self.player_score += 1
             self.ball.reset()
 
+    # AI movement
         self.ai.auto_track(self.ball, self.height)
+
+
 
     def render(self, screen):
         # Draw paddles and ball

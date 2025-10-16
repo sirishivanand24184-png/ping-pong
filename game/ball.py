@@ -18,12 +18,22 @@ class Ball:
         self.x += self.velocity_x
         self.y += self.velocity_y
 
+        # Bounce off top/bottom
         if self.y <= 0 or self.y + self.height >= self.screen_height:
             self.velocity_y *= -1
 
     def check_collision(self, player, ai):
-        if self.rect().colliderect(player.rect()) or self.rect().colliderect(ai.rect()):
-            self.velocity_x *= -1
+        ball_rect = self.rect()  # Must be inside the method
+
+        # Collision with player paddle
+        if ball_rect.colliderect(player.rect()):
+            self.x = player.rect().right  # prevent sticking
+            self.velocity_x = abs(self.velocity_x)
+
+        # Collision with AI paddle
+        elif ball_rect.colliderect(ai.rect()):
+            self.x = ai.rect().left - self.width
+            self.velocity_x = -abs(self.velocity_x)
 
     def reset(self):
         self.x = self.original_x
