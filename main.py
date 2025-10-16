@@ -17,7 +17,7 @@ BLACK = (0, 0, 0)
 clock = pygame.time.Clock()
 FPS = 60
 
-# Game loop
+# Initialize game engine
 engine = GameEngine(WIDTH, HEIGHT)
 
 def main():
@@ -35,7 +35,14 @@ def main():
 
         # --- Check for game over ---
         if engine.check_game_over(SCREEN):
-            running = False  # Stop the loop after showing message
+            # Show replay menu
+            new_score = engine.replay_menu(SCREEN)
+            if new_score is None:
+                running = False  # Exit game if player chooses ESC
+            else:
+                # Set new winning score and reset game
+                engine.winning_score = new_score
+                engine.reset_game()
 
         pygame.display.flip()
         clock.tick(FPS)
