@@ -2,8 +2,6 @@ import pygame
 from .paddle import Paddle
 from .ball import Ball
 
-# Game Engine
-
 WHITE = (255, 255, 255)
 
 class GameEngine:
@@ -21,7 +19,16 @@ class GameEngine:
         self.ai_score = 0
         self.font = pygame.font.SysFont("Arial", 30)
 
-        self.winning_score = 5  # Default winning score
+        self.winning_score = 5  # default winning score
+
+        # Initialize mixer and load sounds
+        pygame.mixer.init()
+        self.snd_paddle = pygame.mixer.Sound("game/sounds/c526-ff1d-45cc-b5b1-96cffef61635.wav")
+        self.snd_wall = pygame.mixer.Sound("game/sounds/125d-3ee9-45d0-a829-ddd13acf2636.wav")
+        self.snd_score = pygame.mixer.Sound("game/sounds/f488-6425-4a09-a991-f37628fcb262.wav")
+
+        # Link ball to engine for playing sounds
+        self.ball.game_engine = self
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
@@ -31,65 +38,40 @@ class GameEngine:
             self.player.move(10, self.height)
 
     def update(self):
-        # Move the ball
         self.ball.move()
-
-        # Check collisions with paddles
         self.ball.check_collision(self.player, self.ai)
 
-        # Check for scoring
+        # Score logic
         if self.ball.x <= 0:
             self.ai_score += 1
+            self.snd_score.play()
             self.ball.reset()
         elif self.ball.x >= self.width:
             self.player_score += 1
+            self.snd_score.play()
             self.ball.reset()
 
-        # AI movement
         self.ai.auto_track(self.ball, self.height)
 
     def render(self, screen):
-        # Draw paddles and ball
         pygame.draw.rect(screen, WHITE, self.player.rect())
         pygame.draw.rect(screen, WHITE, self.ai.rect())
         pygame.draw.ellipse(screen, WHITE, self.ball.rect())
         pygame.draw.aaline(screen, WHITE, (self.width//2, 0), (self.width//2, self.height))
 
-        # Draw score
         player_text = self.font.render(str(self.player_score), True, WHITE)
         ai_text = self.font.render(str(self.ai_score), True, WHITE)
         screen.blit(player_text, (self.width//4, 20))
         screen.blit(ai_text, (self.width * 3//4, 20))
 
-    def check_game_over(self, screen):
-        """
-        Checks if either player or AI reached the winning score.
-        Returns True if game is over, else False.
-        """
-        font = pygame.font.SysFont("Arial", 50)
-        message = None
-
+    def check_game_over(self):
         if self.player_score >= self.winning_score:
-            message = "Player Wins!"
+            return "Player"
         elif self.ai_score >= self.winning_score:
-            message = "AI Wins!"
-
-        if message:
-            # Draw message
-            text = font.render(message, True, WHITE)
-            text_rect = text.get_rect(center=(self.width // 2, self.height // 2))
-            screen.blit(text, text_rect)
-            pygame.display.flip()
-            pygame.time.delay(2000)  # Pause so player sees message
-            return True  # Game over
-
-        return False  # Continue game
+            return "AI"
+        return None
 
     def replay_menu(self, screen):
-        """
-        Displays replay options and waits for user input.
-        Returns the new winning score or None if exiting.
-        """
         font = pygame.font.SysFont("Arial", 40)
         options = [
             "Press 3 for Best of 3",
@@ -105,23 +87,23 @@ class GameEngine:
             screen.blit(text, rect)
         pygame.display.flip()
 
-        waiting = True
-        while waiting:
+        while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return None
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_3:
-                        return 2  # Best of 3 → 2 wins
+                        return 2
                     elif event.key == pygame.K_5:
-                        return 3  # Best of 5 → 3 wins
+                        return 3
                     elif event.key == pygame.K_7:
-                        return 4  # Best of 7 → 4 wins
+                        return 4
                     elif event.key == pygame.K_ESCAPE:
                         return None
 
     def reset_game(self):
-        """Reset scores and ball for a new round"""
         self.player_score = 0
         self.ai_score = 0
         self.ball.reset()
+        self.player.y = self.height // 2 - self.paddle_height // 2
+        self.ai.y = self.height // 2 - self.paddle_height // 2

@@ -1,27 +1,23 @@
 import pygame
 from game.game_engine import GameEngine
 
-# Initialize pygame/Start application
 pygame.init()
 
-# Screen dimensions
 WIDTH, HEIGHT = 800, 600
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ping Pong - Pygame Version")
 
-# Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-# Clock
 clock = pygame.time.Clock()
 FPS = 60
 
-# Initialize game engine
 engine = GameEngine(WIDTH, HEIGHT)
 
 def main():
     running = True
+
     while running:
         SCREEN.fill(BLACK)
 
@@ -33,16 +29,24 @@ def main():
         engine.update()
         engine.render(SCREEN)
 
-        # --- Check for game over ---
-        if engine.check_game_over(SCREEN):
+        winner = engine.check_game_over()
+        if winner:
+            # Display winner message
+            font = pygame.font.SysFont("Arial", 50)
+            text = font.render(f"{winner} Wins!", True, WHITE)
+            rect = text.get_rect(center=(WIDTH//2, HEIGHT//2))
+            SCREEN.blit(text, rect)
+            pygame.display.flip()
+            pygame.time.delay(1000)
+
             # Show replay menu
             new_score = engine.replay_menu(SCREEN)
             if new_score is None:
-                running = False  # Exit game if player chooses ESC
+                running = False
             else:
-                # Set new winning score and reset game
                 engine.winning_score = new_score
                 engine.reset_game()
+                continue
 
         pygame.display.flip()
         clock.tick(FPS)
